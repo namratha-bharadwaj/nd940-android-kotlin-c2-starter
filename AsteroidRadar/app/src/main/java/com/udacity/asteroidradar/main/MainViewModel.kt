@@ -1,6 +1,9 @@
 package com.udacity.asteroidradar.main
 
 import android.app.Application
+import android.os.Build
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.*
 import com.udacity.asteroidradar.PictureOfDay
 import com.udacity.asteroidradar.database.getDatabase
@@ -20,6 +23,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val asteroidClicked: LiveData<Asteroid>
         get() = _asteroidClicked
 
+    private val _apiError = MutableLiveData<Boolean>(false)
+    val apiError: LiveData<Boolean>
+        get() = _apiError
+
+    @RequiresApi(Build.VERSION_CODES.O)
     var asteroidList = Transformations.switchMap(_filterAsteroids) {
         when(it) {
             FilterAsteroid.WEEK -> asteroidRepository.oneWeeksAsteroids
@@ -35,8 +43,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch {
-            asteroidRepository.refreshAsteroids()
-            refreshPictureOfDay()
+            try {
+                asteroidRepository.refreshAsteroids()
+                refreshPictureOfDay()
+            } catch (e: Exception) {
+                _apiError.postValue(true)
+            }
         }
     }
 

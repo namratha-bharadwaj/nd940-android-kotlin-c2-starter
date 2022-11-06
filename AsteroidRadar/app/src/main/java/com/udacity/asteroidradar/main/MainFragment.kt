@@ -1,7 +1,10 @@
 package com.udacity.asteroidradar.main
 
+import android.os.Build
 import android.os.Bundle
 import android.view.*
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -46,8 +49,15 @@ class MainFragment : Fragment() {
         return binding.root
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        viewModel.apiError.observe(viewLifecycleOwner, Observer { isApiError ->
+            if (isApiError == false) {
+                Toast.makeText(context, "Something went wrong. Please try after sometime", Toast.LENGTH_SHORT).show()
+            }
+        })
         viewModel.asteroidList.observe(viewLifecycleOwner, Observer<List<Asteroid>> { asteroidList ->
             asteroidList.apply {
                 mainAsteroidAdapter.submitList(this)
